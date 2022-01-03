@@ -27,23 +27,25 @@ function fetchPage($kodzon,$tahun,$bulan)
 	$arrData = array();
 	$waktusolat = json_decode($result, true);
 
-	if(count($waktusolat['prayerTime']) > 0) {
+	if($waktusolat!=null) {
+	if(is_array($waktusolat['prayerTime']) && count($waktusolat['prayerTime']) > 0) {
 		foreach ($waktusolat['prayerTime'] as $waktu) {
 
 			$arrData[]= array(
 				'hijri' => $waktu['hijri'],
 				'date' => date("d-m-Y", myStrtotime($waktu['date'])),
 				'day' => $waktu['day'],
-				'imsak' => convertTime($waktu['imsak']),
-				'subuh' => convertTime($waktu['fajr']),
-				'syuruk' => convertTime($waktu['syuruk']),
-				'zohor' => convertTime($waktu['dhuhr']),
-				'asar' => convertTime($waktu['asr']),
-				'maghrib' => convertTime($waktu['maghrib']),
-				'isyak' => convertTime($waktu['isha']),
+				'imsak' => convertTime($waktu['imsak'],'imsak'),
+				'subuh' => convertTime($waktu['fajr'],'subuh'),
+				'syuruk' => convertTime($waktu['syuruk'],'syuruk'),
+				'zohor' => convertTime($waktu['dhuhr'],'zohor'),
+				'asar' => convertTime($waktu['asr'],'asar'),
+				'maghrib' => convertTime($waktu['maghrib'],'maghrib'),
+				'isyak' => convertTime($waktu['isha'],'isyak'),
 			);
 		}
 	}
+}
 
     return $arrData; # return array data
 }
@@ -110,15 +112,17 @@ function getDurationDate($month, $year)
 }
 
 // Function to convert the time
-function convertTime($time)
+// User reported some data is incorrect. AM instead of PM
+// only subuh, imsak and syurk should have AM in Malaysia
+function convertTime($time, $prayer)
 {
     // replace separator
     $time = str_replace(".", ":", $time);
     // convert 24h to 12h
     $newtime = date('h:i', strtotime($time));
     // include a.m. or p.m. prefix
-    $newtime .= explode(':', $time)[0] <= 12 ? ' am' : ' pm';
-
+    //$newtime .= explode(':', $time)[0] <= 12 ? ' am' : ' pm';
+	$newtime .= $prayer == 'imsak' || $prayer == 'subuh' || $prayer == 'syuruk' ? ' am':' pm';
     return $newtime;
 }
 

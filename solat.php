@@ -78,7 +78,49 @@ if(isset($_GET['zon']) && isset($_GET['tahun']))
 	$data->prayer_times = $arrData;
 
 	# print JSON data
-	echo json_encode($data);
+	//json_encode($data);
+	# save JSON data to local
+	$json = json_encode($data);
+	echo $json;
+}
+
+# Get All Zone 12 months
+if(isset($_GET['tahun']))
+{
+	$zones = fetchZone();
+	foreach ($zones as $key => $value) {
+	$kodzon = $key;
+	$tahun = $_GET['tahun'];
+
+	$zone = fetchZone();
+
+
+	$arrData = array();
+
+	for($i=1;$i<=12;$i++)
+	{
+		$curr_arr = $arrData;
+		$d = fetchPage($kodzon,$tahun,$i);
+		$arrData = array_merge($curr_arr,$d);
+	}
+
+	$data = new stdClass();
+	$data->zone = strtoupper($kodzon);
+	$data->start = "01-01-".$tahun;
+	$data->end = "31-12-".$tahun;
+	$data->locations = $zone[strtoupper($kodzon)];
+	
+	$data->prayer_times = $arrData;
+
+	# print JSON data
+	//json_encode($data);
+	# save JSON data to local
+	$json = json_encode($data);
+	$filename = $kodzon . ".json";
+	$file = fopen($filename,"w");
+	fwrite($file,$json);
+	fclose($file);
+}
 }
 
 # if no parameters is supplied, show usage message

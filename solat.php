@@ -51,7 +51,7 @@ function fetchPage($kodzon,$tahun,$bulan)
 }
 
 
-# fetch for all 12 months
+# fetch for all 12 months for the zone
 if(isset($_GET['zon']) && isset($_GET['tahun']))
 {
 	$kodzon = $_GET['zon'];
@@ -81,6 +81,114 @@ if(isset($_GET['zon']) && isset($_GET['tahun']))
 	echo json_encode($data);
 }
 
+# fetch for all 12 months for the zone
+if(!isset($_GET['zon']) && isset($_GET['tahun']))
+{
+	$tahun = $_GET['tahun'];
+
+	$zone = fetchZone();
+
+	$zoneList = [
+		"JHR01",
+		"JHR02",
+		"JHR03",
+		"JHR04",
+		"KDH01",
+		"KDH02",
+		"KDH03",
+		"KDH04",
+		"KDH05",
+		"KDH06",
+		"KDH07",
+		"KTN01",
+		"KTN03",
+		"MLK01",
+		"NGS01",
+		"NGS02",
+		"PHG01",
+		"PHG02",
+		"PHG03",
+		"PHG04",
+		"PHG05",
+		"PHG06",
+		"PLS01",
+		"PNG01",
+		"PRK01",
+		"PRK02",
+		"PRK03",
+		"PRK04",
+		"PRK05",
+		"PRK06",
+		"PRK07",
+		"SBH01",
+		"SBH02",
+		"SBH03",
+		"SBH04",
+		"SBH05",
+		"SBH06",
+		"SBH07",
+		"SBH08",
+		"SBH09",
+		"SGR01",
+		"SGR02",
+		"SGR03",
+		"SWK01",
+		"SWK02",
+		"SWK03",
+		"SWK04",
+		"SWK05",
+		"SWK06",
+		"SWK07",
+		"SWK08",
+		"SWK09",
+		"TRG01",
+		"TRG02",
+		"TRG03",
+		"TRG04",
+		"WLY01",
+		"WLY02",
+	];
+
+
+	$prayerData = array();
+	for($a=0;$a<count($zoneList);$a++) {
+		$kodzon = $zoneList[$a];
+
+		for($i=1;$i<=12;$i++)
+		{
+			$d = fetchPage($kodzon,$tahun,$i);
+			for($f=0;$f<count($d);$f++) {
+
+				$prayer = $d[$f];
+				$data = new stdClass();
+				$data->zoneCode = strtoupper($kodzon);
+				$data->date = date("Y-m-d", myStrtotime($prayer['date']));
+				$data->dayName = $prayer['day'];
+				$data->hijriDate = $prayer['hijri'];
+				$data->imsak = $prayer['imsak'];
+				$data->subuh = $prayer['subuh'];
+				$data->syuruk = $prayer['syuruk'];
+				$data->zohor = $prayer['zohor'];
+				$data->asar = $prayer['asar'];
+				$data->maghrib = $prayer['maghrib'];
+				$data->isyak = $prayer['isyak'];
+
+				$location = $zone[strtoupper($kodzon)];
+
+				$data->zoneLocation = implode(",",$location);
+
+				$prayerData[] = $data;
+
+			}	
+		}
+
+	}
+	
+
+	# print JSON data
+	echo json_encode($prayerData);
+}
+
 # if no parameters is supplied, show usage message
 if(!isset($_GET['zon']) && !isset($_GET['tahun']))
 {
@@ -92,6 +200,7 @@ if(!isset($_GET['zon']) && !isset($_GET['tahun']))
 		</p>
 	<?php
 }
+
 
 function myStrtotime($date_string)
 {
@@ -119,10 +228,10 @@ function convertTime($time, $prayer)
     // replace separator
     $time = str_replace(".", ":", $time);
     // convert 24h to 12h
-    $newtime = date('h:i', strtotime($time));
+    $newtime = date('h:i a', strtotime($time));
     // include a.m. or p.m. prefix
     //$newtime .= explode(':', $time)[0] <= 12 ? ' am' : ' pm';
-	$newtime .= $prayer == 'imsak' || $prayer == 'subuh' || $prayer == 'syuruk' ? ' am':' pm';
+	//$newtime .= $prayer == 'imsak' || $prayer == 'subuh' || $prayer == 'syuruk' ? ' am':' pm';
     return $newtime;
 }
 
@@ -162,7 +271,7 @@ function fetchZone() {
 			$zonename = (explode(" - ", strip_tags($zoneoption)))[1];
 
 			// split zone name by ","
-			$zones = explode(",",strip_tags($zonename));
+			$zones = explode(",",trim(strip_tags($zonename)));
 			$zonJson[$zonecode] = $zones;
 		}
 
